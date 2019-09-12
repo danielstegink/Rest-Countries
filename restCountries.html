@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Rest Countries</h1>
+
+<form>
+	Country Name:<br>
+	<input type="text" id="country_name">
+	<br>
+	Country Code:<br>
+	<input type="text" id="country_code">
+	<br>
+	<input type="button" id="submit" value="Submit">
+</form>
+
+<div id="country_list">
+</div>
+</body>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+	$(document).ready(function(){
+		$("#country_list").append(get_default()); // Initialize to default message
+		$("#submit").click(function(){
+			var country_name = $("#country_name").val();
+			var country_code = $("#country_code").val();
+			$.get("getCountries.php", {name: country_name, code: country_code} , function(data){
+				$("#country_list").empty();
+				try {
+					var country_data=JSON.parse(data);
+					$("#country_list").append(get_countries(country_data));
+				}
+				catch(error) {
+					$("#country_list").append(get_default());
+				}
+			});
+		});
+	});
+
+	// Returns the default error message for when no country data exists to display
+	function get_default() {
+		content = $("<div></div>");
+		content.append($("<br>"));
+		content.append("There are no countries to display that match the current input.");
+		return content;
+	}
+
+	// Formats the PHP country data for display
+	function get_countries(data) {
+		var countries = data["countries"];
+		var content = "<div>";
+		content += "<ol>";
+		// Build the list of countries
+		for (var i = 0; i < countries.length; i++) {
+			content += "<li>";
+			content += countries[i]["name"];
+			content += "<ul>";
+			content += "<li>Alpha 2 Code: ";
+			content += countries[i]["alpha2"];
+			content += "</li>";
+			content += "<li>Alpha 3 Code: ";
+			content += countries[i]["alpha3"];
+			content += "</li>";
+			content += "<li>Region: ";
+			content += countries[i]["region"];
+			content += "</li>";
+			content += "<li>Subregion: ";
+			content += countries[i]["subregion"];
+			content += "</li>";
+			content += "<li>Population: ";
+			content += countries[i]["population"];
+			content += "</li>";
+			content += "<li>Flag<br>";
+			// Shrink to 25% of the page, ensuring it fits while also not being ridiculously big compared to the text
+			content += "<img src=\""+countries[i]["flag"]+"\" alt=\""+countries[i]["name"]+" flag\" width=\"25%\" height=\"auto\">";
+			content += "</li>";
+			content += "<li>Languages";
+			content += "<ul>";
+			for (var j = 0; j < countries[i]["languages"].length; j++) {
+				content += "<li>";
+				content += countries[i]["languages"][j];
+				content += "</li>";
+			}
+			content += "</ul>";			
+			content += "</li>";
+			content += "</ul>";
+		}
+		content += "</ol>";
+		
+		// Display the total countries, and the list of regions and subregions
+		content += "<ul>";
+		content += "<li>Total Countries: ";
+		content += data["total"];
+		content += "</li>";
+
+		content += "<li>Regions";
+		content += "<ul>";
+		for (let j in data["regions"]) {
+			content += "<li>";
+			content += j;
+			content += ": ";
+			content += data["regions"][j];
+			content += "</li>";
+		}
+		content += "</ul>";	
+		content += "</li>";
+
+		content += "<li>Subregions";
+		content += "<ul>";
+		for (let j in data["subregions"]) {
+			content += "<li>";
+			content += j;
+			content += ": ";
+			content += data["subregions"][j];
+			content += "</li>";
+		}
+		content += "</ul>";	
+		content += "</li>";
+		content += "</ul>";
+		content += "</div>";
+		return content;
+	}
+</script>
+
+</html>
